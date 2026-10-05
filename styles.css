@@ -1887,6 +1887,7 @@ h1 {
     scroll-padding-top:120px;
   }
   .nav-shell {
+    position:relative;
     height:auto;
     min-height:68px;
     flex-direction:column;
@@ -1923,6 +1924,9 @@ h1 {
     scroll-margin-inline:8px;
   }
   .navigation>.nav-github {
+    position:absolute;
+    top:12px;
+    right:0;
     margin:0;
   }
   .navigation>a[aria-current]:after {
