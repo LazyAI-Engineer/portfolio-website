@@ -3,30 +3,18 @@
 document.documentElement.classList.add("js");
 document.getElementById("year").textContent = new Date().getFullYear();
 
-const menuToggle = document.querySelector(".menu-toggle");
 const navigation = document.getElementById("navigation");
 const navLinks = [...navigation.querySelectorAll('a[href^="#"]:not(.nav-github)')];
-const mobileLayout = window.matchMedia("(max-width: 640px)");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-function setMenu(open) {
-  menuToggle.setAttribute("aria-expanded", String(open));
-  menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
-  navigation.classList.toggle("is-open", open);
-}
-
-menuToggle.addEventListener("click", () => {
-  setMenu(menuToggle.getAttribute("aria-expanded") !== "true");
-});
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && menuToggle.getAttribute("aria-expanded") === "true") {
-    setMenu(false);
-    menuToggle.focus();
+navigation.addEventListener("focusin", (event) => {
+  if (window.matchMedia("(max-width: 640px)").matches) {
+    event.target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" });
   }
 });
+
 document.addEventListener("click", (event) => {
   const link = event.target.closest("a");
-  if (link || !event.target.closest(".nav-shell")) setMenu(false);
   if (!link) return;
   // Only fragment links have section destinations; leave external links native.
   const href = link.getAttribute("href");
@@ -34,13 +22,7 @@ document.addEventListener("click", (event) => {
   if (destination) {
     destination.tabIndex = -1;
     destination.focus({ preventScroll: true });
-  } else if (mobileLayout.matches && navigation.contains(link)) {
-    menuToggle.focus({ preventScroll: true });
   }
-});
-mobileLayout.addEventListener("change", () => {
-  if (mobileLayout.matches && navigation.contains(document.activeElement)) menuToggle.focus();
-  setMenu(false);
 });
 
 // Content stays visible without JavaScript or IntersectionObserver support.
@@ -134,23 +116,22 @@ for (let row = -4; row <= 4; row++) {
 
 // Run portfolioCheck() in the browser console for a small, dependency-free smoke check.
 function portfolioCheck() {
-  const originalState = menuToggle.getAttribute("aria-expanded") === "true";
-  try {
-    setMenu(true);
-    console.assert(navigation.classList.contains("is-open") && menuToggle.getAttribute("aria-expanded") === "true", "Menu should open accessibly");
-    setMenu(false);
-    console.assert(!navigation.classList.contains("is-open") && menuToggle.getAttribute("aria-expanded") === "false", "Menu should close accessibly");
-    console.assert(sections.every(Boolean), "Every navigation link should have a destination");
-    console.assert([...document.querySelectorAll('a[href^="#"]')].every((link) => document.getElementById(link.hash.slice(1))), "Every fragment link should have a real destination, including Home and hero buttons");
-    const githubLinks = document.querySelectorAll('a[href="https://github.com/LazyAI-Engineer"]');
-    console.assert(githubLinks.length === 2 && [...githubLinks].every((link) => link.target === "_blank" && link.relList.contains("noopener") && link.relList.contains("noreferrer")), "Both GitHub profile links should open safely in new tabs");
-    console.assert(document.querySelector('.contact-link[href="mailto:llazyaiengineer@gmail.com"]'), "Email should open the default mail application");
-    console.assert(document.querySelector('.contact-link:disabled')?.textContent.includes("LinkedInComing Soon"), "LinkedIn should be disabled and marked Coming Soon");
-    console.assert([...document.querySelectorAll(".project-links button")].every((button) => button.disabled), "Unpublished project links should stay disabled");
-    console.assert(navigation.querySelectorAll('[aria-current="location"]').length === 1, "Exactly one navigation item should be active");
-    console.assert(network.querySelectorAll("path").length === 216, "The globe should render its network");
-    console.assert(document.getElementById("year").textContent === String(new Date().getFullYear()), "The footer should show the current year");
-  } finally {
-    setMenu(originalState);
+  console.assert(!document.querySelector('.site-header button'), "Navigation should have no collapse or close button");
+  console.assert(navigation.querySelectorAll("a").length === 7 && getComputedStyle(navigation).display === "flex", "All seven navigation links should always be available");
+  if (window.matchMedia("(max-width: 640px)").matches) {
+    console.assert(getComputedStyle(navigation).overflowX === "auto" && getComputedStyle(navigation).flexWrap === "nowrap", "Mobile navigation should scroll in one row");
+    console.assert([...navigation.querySelectorAll("a")].every((link) => link.offsetHeight >= 44 && link.offsetWidth >= 44), "Mobile links should have touch-friendly targets");
+    console.assert(document.documentElement.scrollWidth <= window.innerWidth, "Mobile navigation should not overflow the page");
   }
+  console.assert(sections.every(Boolean), "Every navigation link should have a destination");
+  console.assert([...document.querySelectorAll('a[href^="#"]')].every((link) => document.getElementById(link.hash.slice(1))), "Every fragment link should have a real destination, including Home and hero buttons");
+  const githubLinks = document.querySelectorAll('a[href="https://github.com/LazyAI-Engineer"]');
+  console.assert(githubLinks.length === 2 && [...githubLinks].every((link) => link.target === "_blank" && link.relList.contains("noopener") && link.relList.contains("noreferrer")), "Both GitHub profile links should open safely in new tabs");
+  console.assert(navigation.querySelector('.nav-github')?.getAttribute("href") === "https://github.com/LazyAI-Engineer", "GitHub should be directly available in navigation");
+  console.assert(document.querySelector('.contact-link[href="mailto:llazyaiengineer@gmail.com"]'), "Email should open the default mail application");
+  console.assert(document.querySelector('.contact-link:disabled')?.textContent.includes("LinkedInComing Soon"), "LinkedIn should be disabled and marked Coming Soon");
+  console.assert([...document.querySelectorAll(".project-links button")].every((button) => button.disabled), "Unpublished project links should stay disabled");
+  console.assert(navigation.querySelectorAll('[aria-current="location"]').length === 1, "Exactly one navigation item should be active");
+  console.assert(network.querySelectorAll("path").length === 216, "The globe should render its network");
+  console.assert(document.getElementById("year").textContent === String(new Date().getFullYear()), "The footer should show the current year");
 }
